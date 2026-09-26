@@ -2,7 +2,7 @@ Bootstrap: docker
 From: continuumio/miniconda3:latest
 
 %files
-    deconv_c2s.yml /opt/env.yaml
+    deconv_c2s_cu129.yml /opt/env.yaml
 
 %post
     set -eu
