@@ -38,6 +38,35 @@ try:
     from cell2sentence.tasks import embed_cells
     from typing import List, Optional
     import time
+    import warnings
+    import torch
+    from cell2sentence.csmodel import CSModel   
+    def _embed_cells_batched_patched(self, model, prompt_list, max_num_tokens=1024):
+        tokens = self.tokenizer(prompt_list, padding=True, return_tensors='pt')
+        input_ids = tokens['input_ids'].to(self.device)
+        attention_mask = tokens['attention_mask'].to(self.device)
+     
+        outputs = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            output_hidden_states=True
+        )
+        all_embeddings = []
+        for idx in range(len(prompt_list)):
+            hidden = outputs.hidden_states[-1][idx].mean(0)
+            if hidden.dtype != torch.float32:
+                warnings.warn(
+                    f"embed_cells_batched: casting {hidden.dtype} -> float32 "
+                    "before numpy conversion (numpy has no bfloat16 dtype).",
+                    stacklevel=2,
+                )
+                hidden = hidden.float()
+            embedding = hidden.detach().cpu().numpy()
+            all_embeddings.append(embedding)
+        return all_embeddings
+ 
+    CSModel.embed_cells_batched = _embed_cells_batched_patched
+
     print("cell2sentence successfully imported.")
     
 except ImportError:
