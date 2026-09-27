@@ -15,6 +15,7 @@ import pandas as pd
 import scanpy as sc
 import scipy.sparse as sp
 import torch
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 # ===============================
 # Geneformer
@@ -358,9 +359,11 @@ def get_embedding_gf(
             forward_batch_size=batch_size,
         )
     else:
+        device = select_device()
         state_embs_dict = get_embs_cpu(
             model,
             filtered_input_data,
+            device = device,
             emb_mode="cell",
             layer_to_quant=layer_to_quant,
             pad_token_id=pad_token_id,
@@ -900,6 +903,7 @@ def get_embs_cpu(
     layer_to_quant,
     pad_token_id,
     forward_batch_size=1,
+    device = "cpu",
     token_gene_dict=None,
     special_token=False,  # retained for API compatibility; unused
     summary_stat=None,
@@ -917,9 +921,9 @@ def get_embs_cpu(
     if token_gene_dict is None:
         raise ValueError("token_gene_dict is required.")
 
-    model = model.to("cpu")
+    model = model.to(device)
     model.eval()
-    device = torch.device("cpu")
+    device = torch.device(device)
 
     model_input_size = pu.get_model_input_size(model)
     total_batch_length = len(filtered_input_data)
@@ -1112,3 +1116,12 @@ def infer_model(path):
             data = json.load(file)
             model_type = "scgpt"
     return model_type
+
+def select_device():
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
