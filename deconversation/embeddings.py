@@ -403,6 +403,7 @@ def get_embedding_c2s(
     model_path,
     model_save_dir,
     model_save_name,
+    batch_size = 8,
     transpose = False,
     gene_name_rm = r"\..+",
     use_genes = None,
@@ -545,6 +546,7 @@ def get_embedding_c2s(
         csdata=csdata,
         csmodel=csmodel,
         n_genes=n_genes,
+        inference_batch_size=batch_size
     )
 
     embeddings_df = pd.DataFrame(embedded_cells)
