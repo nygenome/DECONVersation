@@ -534,6 +534,8 @@ def get_embedding_c2s(
         save_dir=model_save_dir,
         save_name=model_save_name,
     )
+    csmodel.device = select_device() 
+    print("C2S using device:", csmodel.device)
 
     # Extract Embeddings
     if log:
