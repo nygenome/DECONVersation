@@ -122,7 +122,7 @@ def main(argv=None):
             solver=args.solver,
             transpose=transpose,
             demo=demo,
-            batch_size=batch_size
+            batch_size=args.batch_size
         )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
