@@ -47,6 +47,8 @@ While DECONVersation itself is lightweight and easy to install with `pip install
 
 We also provide conda env yaml files in the `envs` directory that are reproducibly operational on our hardware (NVIDIA L40S), each corresponding to one of the scFMs + DECONVersation. They can be installed with e.g. `conda env create -f deconv_gf.yml`. Apptainer def files are also included. Alternatively, we provide prebuilt CUDA12.9 singularity images for each scFM, with DECONVersation v0.1.0 installed, on [Zenodo](https://zenodo.org/records/22949405).
 
+DECONVersation also support Apple Silicon (MPS) acceleration, to speed up Geneformer and C2S embedding extraction on corresponding machines (2x or more faster than CPU alone on M2 16GB), provided that torch and other dependencies are installed as native arm64 builds.
+
 ---
 
 ## Quick start
