@@ -87,7 +87,7 @@ def deconverse(
     for noisy in ("transformers", "datasets", "scanpy", "anndata"):
         logging.getLogger(noisy).setLevel(logging.ERROR)
     if model is None and mode not in {"raw", "pca"}:
-        parser.error("model is required unless mode is 'raw' or 'pca'")
+        raise ValueError("model is required unless mode is 'raw' or 'pca'")
     if mode is None:
         mode = embeddings.infer_model(model)
     print("Using model: " + mode)
