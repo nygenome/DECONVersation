@@ -74,6 +74,11 @@ def build_parser():
         action="store_true",
         help="If input matrices need to be transposed to geneXsample"
     )
+    parser.add_argument(
+        "--batch_size",
+        default=5,
+        help="Default batch processing of 5, lower if memory is a contraint"
+    )
     return parser
 
 
@@ -116,7 +121,8 @@ def main(argv=None):
             sample_col=args.sample_col,
             solver=args.solver,
             transpose=transpose,
-            demo=demo
+            demo=demo,
+            batch_size=args.batch_size
         )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

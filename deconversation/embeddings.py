@@ -15,6 +15,7 @@ import pandas as pd
 import scanpy as sc
 import scipy.sparse as sp
 import torch
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 # ===============================
 # Geneformer
@@ -37,6 +38,35 @@ try:
     from cell2sentence.tasks import embed_cells
     from typing import List, Optional
     import time
+    import warnings
+    import torch
+    from cell2sentence.csmodel import CSModel   
+    def _embed_cells_batched_patched(self, model, prompt_list, max_num_tokens=1024):
+        tokens = self.tokenizer(prompt_list, padding=True, return_tensors='pt')
+        input_ids = tokens['input_ids'].to(self.device)
+        attention_mask = tokens['attention_mask'].to(self.device)
+     
+        outputs = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            output_hidden_states=True
+        )
+        all_embeddings = []
+        for idx in range(len(prompt_list)):
+            hidden = outputs.hidden_states[-1][idx].mean(0)
+            if hidden.dtype != torch.float32:
+                warnings.warn(
+                    f"embed_cells_batched: casting {hidden.dtype} -> float32 "
+                    "before numpy conversion (numpy has no bfloat16 dtype).",
+                    stacklevel=2,
+                )
+                hidden = hidden.float()
+            embedding = hidden.detach().cpu().numpy()
+            all_embeddings.append(embedding)
+        return all_embeddings
+ 
+    CSModel.embed_cells_batched = _embed_cells_batched_patched
+
     print("cell2sentence successfully imported.")
     
 except ImportError:
@@ -105,7 +135,7 @@ def extract_embs(
     layer_to_quant=18,  # Default layer is last layer
     token_output_name="gf_tokens",
     model_version = "V2",
-    batch_size  = 5, # for geneformer and scGPT
+    batch_size  = 5, # for geneformer,c2s, and scGPT
 
     # Cell2Sentence only
     c2s_save_name="c2s_object",
@@ -183,6 +213,7 @@ def extract_embs(
             n_genes=n_genes,
             log=log,
             log_path=log_path,
+            batch_size =  batch_size
         )
         
     # Cell Hermes
@@ -358,9 +389,11 @@ def get_embedding_gf(
             forward_batch_size=batch_size,
         )
     else:
+        device = select_device()
         state_embs_dict = get_embs_cpu(
             model,
             filtered_input_data,
+            device = device,
             emb_mode="cell",
             layer_to_quant=layer_to_quant,
             pad_token_id=pad_token_id,
@@ -400,6 +433,7 @@ def get_embedding_c2s(
     model_path,
     model_save_dir,
     model_save_name,
+    batch_size = 8,
     transpose = False,
     gene_name_rm = r"\..+",
     use_genes = None,
@@ -531,6 +565,8 @@ def get_embedding_c2s(
         save_dir=model_save_dir,
         save_name=model_save_name,
     )
+    csmodel.device = select_device() 
+    print("C2S using device:", csmodel.device)
 
     # Extract Embeddings
     if log:
@@ -540,6 +576,7 @@ def get_embedding_c2s(
         csdata=csdata,
         csmodel=csmodel,
         n_genes=n_genes,
+        inference_batch_size=batch_size
     )
 
     embeddings_df = pd.DataFrame(embedded_cells)
@@ -900,6 +937,7 @@ def get_embs_cpu(
     layer_to_quant,
     pad_token_id,
     forward_batch_size=1,
+    device = "cpu",
     token_gene_dict=None,
     special_token=False,  # retained for API compatibility; unused
     summary_stat=None,
@@ -917,9 +955,9 @@ def get_embs_cpu(
     if token_gene_dict is None:
         raise ValueError("token_gene_dict is required.")
 
-    model = model.to("cpu")
+    model = model.to(device)
     model.eval()
-    device = torch.device("cpu")
+    device = torch.device(device)
 
     model_input_size = pu.get_model_input_size(model)
     total_batch_length = len(filtered_input_data)
@@ -1112,3 +1150,12 @@ def infer_model(path):
             data = json.load(file)
             model_type = "scgpt"
     return model_type
+
+def select_device():
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+

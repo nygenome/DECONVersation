@@ -1,4 +1,6 @@
 # Changelog
+## [0.1.1]
+- added Apple silicon support to use MPS
 ## [0.1.0]
 - added fine-tuning functions for scGPT and CellHermes
 - added CLI/wrapper support for scVI, PCA, and raw input deconvolution as comparison methods
