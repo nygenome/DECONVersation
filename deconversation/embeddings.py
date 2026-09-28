@@ -135,7 +135,7 @@ def extract_embs(
     layer_to_quant=18,  # Default layer is last layer
     token_output_name="gf_tokens",
     model_version = "V2",
-    batch_size  = 5, # for geneformer and scGPT
+    batch_size  = 5, # for geneformer,c2s, and scGPT
 
     # Cell2Sentence only
     c2s_save_name="c2s_object",
@@ -213,6 +213,7 @@ def extract_embs(
             n_genes=n_genes,
             log=log,
             log_path=log_path,
+            batch_size =  batch_size
         )
         
     # Cell Hermes

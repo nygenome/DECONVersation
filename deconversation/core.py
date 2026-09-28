@@ -32,7 +32,8 @@ def deconverse(
     sample_col = "sample",
     solver = "nnls",
     demo = False,
-    transpose = False):
+    transpose = False,
+    batch_size = 5):
     """
     Extracting embeddings for bulk and ref signature data, then run NNLS-based and other methods for deconvolution
     
@@ -74,6 +75,9 @@ def deconverse(
     
     transpose : bool
         if tables are in sample x gene format, will need to be transposed
+
+    batch_size : int
+        default batch processing of 5, lower if memory is a constraint
 
     Returns
     -------
@@ -151,7 +155,8 @@ def deconverse(
                     mode = mode,
                     model_path= model,
                     temp_output_dir = temp_output_dir + "/sig",
-                    delete_temp_files = False
+                    delete_temp_files = False,
+                    batch_size=batch_size
                 )
                 sig_mat_embed.to_csv(temp_output_dir + "/signature_embedding.csv")
         print("Extracting bulk embedding...")
@@ -164,7 +169,8 @@ def deconverse(
                     mode = mode,
                     model_path= model,
                     temp_output_dir = temp_output_dir + "/bulk",
-                    delete_temp_files = False
+                    delete_temp_files = False,
+                    batch_size=batch_size
                 )
             bulk_embed.to_csv(temp_output_dir + "/bulk_embedding.csv")
     
