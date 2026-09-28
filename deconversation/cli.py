@@ -77,6 +77,7 @@ def build_parser():
     parser.add_argument(
         "--batch_size",
         default=5,
+        type=int,
         help="Default batch processing of 5, lower if memory is a contraint"
     )
     return parser
