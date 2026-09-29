@@ -56,8 +56,8 @@ deconversation = [
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 [project.urls]
-Homepage = "https://github.com/Eastmanmd/DECONVersation"
-Issues = "https://github.com/Eastmanmd/DECONVersation/issues"
+Homepage = "https://github.com/nygenome/DECONVersation"
+Issues = "https://github.com/nygenome/DECONVersation/issues"
 [project.scripts]
 deconverse = "deconversation.cli:main"
 # Optional model are not listed as extras, since installation is non-trivial;
