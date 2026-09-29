@@ -5,7 +5,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/DECONVersation.svg)](https://pypi.org/project/DECONVersation/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/release/python-380/)
 [![Downloads](https://static.pepy.tech/personalized-badge/deconversation?period=total&units=none&left_text=downloads&left_color=grey&right_color=blue)](https://pypi.org/project/DECONVersation/)
-[![Github action](https://github.com/nygenome/DECONVersation/actions/workflows/python-app.yml/badge.svg)](https://github.com/nygenome/DECONVersation/tree/main/envs)
+[![Github Actions](https://github.com/nygenome/DECONVersation/actions/workflows/python-app.yml/badge.svg)](https://github.com/nygenome/DECONVersation/tree/main/envs)
 [![Zenodo](https://img.shields.io/badge/Zenodo-DOI-f5de53?&color=f5de53)](https://zenodo.org/records/22949405)
 
 DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. This takes advantage of the strengths of scFMs in faithfully representing transcriptomes, learning meaningful biological networks, and minimizing batch effect and noise. Currently, cell embeddings from [Geneformer](https://huggingface.co/ctheodoris/Geneformer), [Cell2Sentence](https://github.com/vandijklab/cell2sentence), [CellHermes](https://github.com/theislab/CellHermes), and [scGPT](https://github.com/bowang-lab/scGPT) are supported (+PCA and scVI for comparison). 
@@ -20,14 +20,14 @@ DECONVersation enables end-to-end deconvolution through a set of easy-to-use fun
 
 ## Benchmarking 
 
-DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths and 2 pseudobulk dataset, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
+DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths and 2 pseudobulk datasets, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
 
 <h1 align="left">
   <img src="https://raw.githubusercontent.com/nygenome/DECONVersation/main/docs/full_bench.png" width="900">
 </h1>
 
 <b> Summary </b> <br>
-Across 6 benchmarked real bulk and 2 pseudobulk datasets, we calculate overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Fine-tuned Cell2Sentence and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all datasets, with fine-tuned models outperforming their zero-shot counterparts in each case. Though zero-shot performance is already comparable to some common tools in the field, this highlights the benefit of fine-tuning (training models to predict cell type annotations from a single-cell reference). Among the tested tools, only DWLS R package achieves comparable performance to the fine-tuned embedding-based approaches available in DECONVersation.
+Across 6 benchmarked real bulk and 2 pseudobulk datasets, we calculate overall RMSE and correlation coefficient alongside mean RMSE and correlation averaged across cell types. Fine-tuned Cell2Sentence (C2S) and Geneformer-based embeddings both demonstrate consistent deconvolution performance across all datasets, with fine-tuned models outperforming their zero-shot counterparts in each case. Though zero-shot performance is already comparable to some common tools in the field, this highlights the benefit of fine-tuning (training models to predict cell type annotations from a single-cell reference). Among the tested tools, only DWLS R package achieves comparable performance to the fine-tuned embedding-based approaches available in DECONVersation.
 
 | # | Dataset | Source | Ground Truth | Cell Type # | 
 | -------- | -------- | --------  | --------  | --------  |
@@ -43,11 +43,11 @@ Across 6 benchmarked real bulk and 2 pseudobulk datasets, we calculate overall R
 ---
 
 ## Installation
-While DECONVersation itself is lightweight and easy to install with `pip install DECONVersation`, the various single cell foundation models themselves are not. In fact, due to dependency restrictions, they will never be compatible in the same python environment. DECONVersation works around this by detecting and only loading the available model(s). For each scFM model and package, users should consult the corresponding official installation guides. 
+While DECONVersation itself is lightweight and easy to install with `pip install DECONVersation`, the various single cell foundation models themselves are not. In fact, due to dependency restrictions, they will never be compatible in the same Python environment. DECONVersation works around this by detecting and only loading the available model(s). For each scFM model and package, users should consult the corresponding official installation guides. 
 
-We also provide conda env yaml files in the `envs` directory that are reproducibly operational on our hardware (NVIDIA L40S), each corresponding to one of the scFMs + DECONVersation. They can be installed with e.g. `conda env create -f deconv_gf.yml`. Apptainer def files are also included. Alternatively, we provide prebuilt CUDA12.9 singularity images for each scFM, with DECONVersation v0.1.0 installed, on [Zenodo](https://zenodo.org/records/22949405).
+We also provide conda env yaml files in the `envs` directory that are reproducibly operational on our hardware (NVIDIA L40S), each corresponding to one of the scFMs + DECONVersation. They can be installed with e.g. `conda env create -f deconv_gf.yml`. Apptainer def files are also included. Alternatively, we provide prebuilt CUDA 12.9 singularity images for each scFM, with DECONVersation v0.1.0 installed, on [Zenodo](https://zenodo.org/records/22949405).
 
-DECONVersation also support Apple Silicon (MPS) acceleration, to speed up Geneformer and C2S embedding extraction on corresponding machines (2x or more faster than CPU alone on M2 16GB), provided that torch and other dependencies are installed as native arm64 builds.
+DECONVersation also supports Apple Silicon (MPS) acceleration, to speed up Geneformer and C2S embedding extraction on corresponding machines (2x or more faster than CPU alone on M2 16GB), provided that torch and other dependencies are installed as native arm64 builds.
 
 ---
 
@@ -88,8 +88,8 @@ singularity exec --nv \
 
 - [DECONVersation on bulk RNA-seq using Geneformer](tutorials/run_deconversation_on_bulk_geneformer.ipynb): Extract embeddings and deconvolute on bulk against a single cell reference.
 - [DECONVersation on pseudobulk using Geneformer](tutorials/run_deconversation_on_pseudobulk_data.ipynb): Validate deconvolution using pseudobulk data.
-- [Fine-tuning geneformer for cell type classification](tutorials/finetune_geneformer_for_cell_type_classification.ipynb): Fine-tune geneformer for cell type classification 
-- [Extracting attention weights using DECONVersation](tutorials/extract_attention_weights.ipynb): Extract scFM attention weights (Geneformer, Cell2Sentence & cellHermes)
+- [Fine-tuning Geneformer for cell type classification](tutorials/finetune_geneformer_for_cell_type_classification.ipynb): Fine-tune Geneformer for cell type classification 
+- [Extracting attention weights using DECONVersation](tutorials/extract_attention_weights.ipynb): Extract scFM attention weights (Geneformer, Cell2Sentence & CellHermes)
 
 ---
 
