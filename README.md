@@ -1,11 +1,11 @@
 <h1 align="left">
-  <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/deconversation.png" width="500">
+  <img src="https://raw.githubusercontent.com/nygenome/DECONVersation/main/docs/deconversation.png" width="500">
 </h1>
 
 [![PyPI version](https://img.shields.io/pypi/v/DECONVersation.svg)](https://pypi.org/project/DECONVersation/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/release/python-380/)
 [![Downloads](https://static.pepy.tech/personalized-badge/deconversation?period=total&units=none&left_text=downloads&left_color=grey&right_color=blue)](https://pypi.org/project/DECONVersation/)
-[![Github action](https://github.com/Eastmanmd/DECONVersation/actions/workflows/python-app.yml/badge.svg)](https://github.com/Eastmanmd/DECONVersation/tree/main/envs)
+[![Github action](https://github.com/nygenome/DECONVersation/actions/workflows/python-app.yml/badge.svg)](https://github.com/nygenome/DECONVersation/tree/main/envs)
 [![Zenodo](https://img.shields.io/badge/Zenodo-DOI-f5de53?&color=f5de53)](https://zenodo.org/records/22949405)
 
 DECONVersation leverages embedding representations from large-scale, LLM-based foundation models to perform deconvolution of bulk RNA-seq data. This takes advantage of the strengths of scFMs in faithfully representing transcriptomes, learning meaningful biological networks, and minimizing batch effect and noise. Currently, cell embeddings from [Geneformer](https://huggingface.co/ctheodoris/Geneformer), [Cell2Sentence](https://github.com/vandijklab/cell2sentence), [CellHermes](https://github.com/theislab/CellHermes), and [scGPT](https://github.com/bowang-lab/scGPT) are supported (+PCA and scVI for comparison). 
@@ -13,7 +13,7 @@ DECONVersation leverages embedding representations from large-scale, LLM-based f
 DECONVersation enables end-to-end deconvolution through a set of easy-to-use functions. Embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built [pseudobulk functions](tutorials/run_deconversation_on_pseudobulk_data.ipynb), [model fine-tuning](tutorials/finetune_geneformer_for_cell_type_classification.ipynb) and [attention extraction](tutorials/extract_attention_weights.ipynb).
 
 <h1 align="left">
-  <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/workflow.png" width="900">
+  <img src="https://raw.githubusercontent.com/nygenome/DECONVersation/main/docs/workflow.png" width="900">
 </h1>
 
 ---
@@ -23,7 +23,7 @@ DECONVersation enables end-to-end deconvolution through a set of easy-to-use fun
 DECONVersation was benchmarked across 6 real bulk RNA-seq datasets with ground truths and 2 pseudobulk dataset, spanning diverse tissue types and experimental conditions, to evaluate deconvolution performance and generalizability.
 
 <h1 align="left">
-  <img src="https://raw.githubusercontent.com/Eastmanmd/DECONVersation/main/docs/full_bench.png" width="900">
+  <img src="https://raw.githubusercontent.com/nygenome/DECONVersation/main/docs/full_bench.png" width="900">
 </h1>
 
 <b> Summary </b> <br>
