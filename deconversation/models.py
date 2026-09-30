@@ -951,7 +951,7 @@ def train_scgpt_cell_classifier(
         tensor_celltype_labels_train = torch.from_numpy(train_celltype_labels).long()
         tensor_celltype_labels_valid = torch.from_numpy(valid_celltype_labels).long()
 
-        if sort_seq_batch:  # TODO: update to random pick seq source in each traning batch
+        if sort_seq_batch:  # TODO: update to random pick seq source in each training batch
             train_sort_ids = np.argsort(train_batch_labels)
             input_gene_ids_train = input_gene_ids_train[train_sort_ids]
             input_values_train = input_values_train[train_sort_ids]
@@ -1083,7 +1083,7 @@ def train_scgpt_cell_classifier(
                     #generative_training=False
                 )
 
-                masked_positions = input_values.eq(mask_value)  # the postions to predict
+                masked_positions = input_values.eq(mask_value)
                 loss = 0.0
                 metrics_to_log = {}
                 if MLM:
@@ -1591,7 +1591,7 @@ def train_scgpt_cell_classifier(
     preprocessor(adata, batch_key=None)
     preprocessor(adata_test, batch_key=None)
 
-    input_layer_key = {  # the values of this map coorespond to the keys in preprocessing
+    input_layer_key = {
         "normed_raw": "X_normed",
         "log1p": "X_normed",
         "binned": "X_binned",

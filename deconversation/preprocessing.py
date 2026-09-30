@@ -120,7 +120,7 @@ def gene_id_name_map(
     mode) :
 
     """
-    Function to convert ensembl ids to symols or symbols to ids
+    Function to convert ensembl ids to symbols or symbols to ids
 
     Parameters
     ----------

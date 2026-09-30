@@ -1,6 +1,7 @@
 # Changelog
 ## [0.1.1]
 - added Apple silicon support to use MPS
+- expose more options in cli and core wrapper function
 ## [0.1.0]
 - added fine-tuning functions for scGPT and CellHermes
 - added CLI/wrapper support for scVI, PCA, and raw input deconvolution as comparison methods
@@ -19,5 +20,5 @@
 - support geneformer embedding on cpu
 - documented envs installation guide
 ## [0.0.1]
-- inital release
+- initial release
 - basic functionality and tutorials

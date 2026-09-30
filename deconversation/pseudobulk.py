@@ -68,7 +68,7 @@ def generate_pseudobulk(
         warnings.warn("No cell types found; returning empty DataFrames.")
         return pd.DataFrame(), pd.DataFrame()
     
-    # Group cell tyoes
+    # Group cell types
     grouped_cells = {k: v.index.tolist() for k, v in adata.obs.groupby(cell_type_col, observed=True)}
 
     # Initialize empty lists to store results
@@ -103,7 +103,7 @@ def generate_pseudobulk(
         # Sample target cells
         if target_type in grouped_cells and n_target > 0: 
 
-            # Number of cells availale for subsampling
+            # Number of cells available for subsampling
             available_target = len(grouped_cells[target_type])
             
             # Warning for small cell populations (# Only used if the number of target cells is greater 

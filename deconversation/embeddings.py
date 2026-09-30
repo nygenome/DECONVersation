@@ -162,7 +162,7 @@ def extract_embs(
         foundation or deep learning model either geneformer, scgpt, 
         c2s, cellHermes or scVI 
     temp_output_dir : str
-        path to durectory to store generated intermediate files 
+        path to directory to store generated intermediate files 
     model_path: str
         path to model 
     delete_temp_files : bool

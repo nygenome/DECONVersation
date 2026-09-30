@@ -212,7 +212,7 @@ def load_results(folder_path, ground_truth_file):
 
 
 # ============================================
-# Heatmaps - beanchmark multiple results 
+# Heatmaps - benchmark multiple results 
 # ============================================
 def plot_cell_type_heatmaps(data, 
                             save_path = None):
