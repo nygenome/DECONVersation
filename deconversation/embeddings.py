@@ -14,8 +14,8 @@ import numpy as np
 import pandas as pd
 import scanpy as sc
 import scipy.sparse as sp
-import torch
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+import torch
 
 # ===============================
 # Geneformer
@@ -41,7 +41,11 @@ try:
     import warnings
     import torch
     from cell2sentence.csmodel import CSModel   
+    
+    @torch.inference_mode()
     def _embed_cells_batched_patched(self, model, prompt_list, max_num_tokens=1024):
+        model.eval()
+
         tokens = self.tokenizer(prompt_list, padding=True, return_tensors='pt')
         input_ids = tokens['input_ids'].to(self.device)
         attention_mask = tokens['attention_mask'].to(self.device)
