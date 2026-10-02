@@ -662,6 +662,7 @@ def get_embedding_ch(
     model = load_model(
         tokenizer, model_args, finetuning_args, is_trainable=False, add_valuehead=(not can_generate)
     )
+    model = model.to(select_device())
     generating_args = generating_args.to_dict()
 
     # generate message data
