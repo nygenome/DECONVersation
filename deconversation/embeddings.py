@@ -671,7 +671,7 @@ def get_embedding_ch(
         temp_ord = bulk_df.iloc[n,:].sort_values(ascending = False)
         matches = [gene for gene in temp_ord.index if not re.compile("^MT-|^RPL|^RPS").search(gene)]
         prompt = "A cell with genes ranked by expression: " + " ".join(temp_ord[matches][0:500].index.to_list())
-        print(prompt)
+        #print(prompt)
         messages.append([
             {
                 "role": "user",
