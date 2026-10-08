@@ -30,7 +30,7 @@ def run_deconv(
         Signature matrix (Rows:Genes, Columns:Cell types )
     
     solver : str
-        solvers currently supported: nnls, ridge, elasticnet, nusvr
+        solvers currently supported: "nnls", "dwls",  "ridge", "elasticnet", "nusvr", "gradient_descent"
 
     normalize : bool, default=True
         If True, normalize NNLS coefficients to sum to 1 per sample
@@ -98,39 +98,8 @@ def run_deconv(
             #if normalize and coeffs.sum() > 0:
             #    coeffs = coeffs / coeffs.sum()
         
-        elif solver == "nnls_mod":
-            X_aug = np.vstack([X, 1000 * np.ones((1, X.shape[1]))])
-            y_aug = np.append(y, 1000)
-            coeffs, _ = nnls(X_aug, y_aug)
-        
         elif solver == "dwls":
             coeffs = solve_dampened_wls(X, y)
-
-        elif solver == "dwls_approx":
-            coeffs, _ = nnls(X, y)  # initial fit
-            for _ in range(4):
-                y_hat = X @ coeffs
-                y_hat = np.clip(y_hat, 1e-6, None)
-                w = 1.0 / (y_hat ** 2)
-                lo, hi = np.quantile(w, [0.05, 1 - 0.05])
-                w = np.clip(w, lo, hi)
-                sw = np.sqrt(w)
-                coeffs, _ = nnls(X * sw[:, None], y * sw)
-        
-        elif solver == "simplex":
-            coeffs = _simplex_ls(X, y)
-
-        elif solver == "ridge_simplex":
-            coeffs = _simplex_ls(X, y, alpha=1.0)
-
-        elif solver == "dwls_simplex":
-            coeffs = _simplex_ls(X, y)  # initial fit
-            for _ in range(4):
-                y_hat = np.clip(X @ coeffs, 1e-6, None)
-                w = 1.0 / (y_hat ** 2)
-                lo, hi = np.quantile(w, [0.05, 1 - 0.05])
-                w = np.clip(w, lo, hi)
-                coeffs = _simplex_ls(X, y, weights=w)
         
         elif solver == "ridge":
             model = Ridge(alpha=1.0, positive=True, fit_intercept=False)
@@ -145,11 +114,6 @@ def run_deconv(
             coeffs = model.fit(X, y).coef_.ravel()
             coeffs = np.clip(coeffs, 0, None)
         
-        elif solver == "simplex_nnls":
-            coeffs = simplex_nnls(X, y)
-
-        elif solver == "centered_simplex":
-            coeffs = centered_simplex_deconvolution(X,y)
         else:
             raise ValueError(f"Unknown solver: {solver!r}")
 #elif solver == "gradient_descent":
@@ -237,68 +201,6 @@ def gd_decompose(
 
     return w_final.squeeze(0).numpy() if not batched else w_final.numpy()
 
-def simplex_nnls(X, y, maxiter=500, ftol=1e-10):
-    """Fit nonnegative proportions that sum to one."""
-
-    X = np.asarray(X, dtype=float)
-    y = np.asarray(y, dtype=float).reshape(-1)
-
-    if X.ndim != 2 or X.shape[0] != y.shape[0]:
-        raise ValueError("X must be (features, cell_types) and match y.")
-
-    n_cell_types = X.shape[1]
-    hessian = X.T @ X
-    linear_term = X.T @ y
-
-    def objective(p):
-        return 0.5 * p @ hessian @ p - linear_term @ p
-
-    def gradient(p):
-        return hessian @ p - linear_term
-
-    result = minimize(
-        objective,
-        x0=np.full(n_cell_types, 1.0 / n_cell_types),
-        jac=gradient,
-        method="SLSQP",
-        bounds=[(0.0, None)] * n_cell_types,
-        constraints={
-            "type": "eq",
-            "fun": lambda p: p.sum() - 1.0,
-            "jac": lambda p: np.ones_like(p),
-        },
-        options={"maxiter": maxiter, "ftol": ftol},
-    )
-
-    if not result.success:
-        raise RuntimeError(f"Simplex NNLS failed: {result.message}")
-
-    proportions = np.clip(result.x, 0.0, None)
-    return proportions / proportions.sum()
-
-def _simplex_ls(X, y, weights=None, alpha=0.0, prior=None):
-        n = X.shape[1]
-        p0 = np.full(n, 1.0 / n)
-        w = weights if weights is not None else np.ones_like(y)
-
-        def obj(p):
-            resid = X @ p - y
-            wr = w * resid
-            val = wr @ resid
-            grad = 2 * X.T @ wr
-            if alpha > 0:
-                pr = prior if prior is not None else np.full(n, 1.0 / n)
-                val += alpha * np.sum((p - pr) ** 2)
-                grad += 2 * alpha * (p - pr)
-            return val, grad
-
-        cons = [{"type": "eq", "fun": lambda p: p.sum() - 1.0,
-                 "jac": lambda p: np.ones(n)}]
-        res = minimize(obj, p0, jac=True, bounds=[(0, None)] * n,
-                        constraints=cons, method="SLSQP",
-                        options={"maxiter": 500, "ftol": 1e-10})
-        return res.x
-
 def run_all_deconv(
     bulk_df: pd.DataFrame,
     signature_df: pd.DataFrame,
@@ -320,7 +222,7 @@ def run_all_deconv(
         Signature matrix (Rows:Genes, Columns:Cell types )
     
     solvers : list
-        list of solvers to use. E.G nnls, ridge, elasticnet, nusvr
+        list of solvers to use. E.G ["nnls", "dwls",  "ridge", "elasticnet", "nusvr", "gradient_descent"]
 
     normalize : bool, default=True
         If True, normalize NNLS coefficients to sum to 1 per sample
@@ -339,12 +241,7 @@ def run_all_deconv(
 
     # If none return all solvers 
     if solvers is None:
-        solvers = [
-            "nnls", "nnls_mod", "dwls", "dwls_approx",
-            "simplex", "ridge_simplex", "dwls_simplex",
-            "ridge", "elasticnet", "nusvr", "simplex_nnls",
-            "gradient_descent","centered_simplex"
-        ]
+        solvers = ["nnls", "dwls",  "ridge", "elasticnet", "nusvr", "gradient_descent"]
 
     # checks
     check_signature(signature_df.T)
@@ -556,37 +453,6 @@ def plot_linearity(diag_df, ax=None):
     ax.set_title("Linearity of mixing in embedding space")
     return ax
 
-def centered_simplex_deconvolution(
-    signature: np.ndarray,  # embedding dimensions x cell types
-    bulk: np.ndarray,       # embedding dimensions
-) -> np.ndarray:
-    n_cell_types = signature.shape[1]
-
-    centroid = signature.mean(axis=1)
-    signature_centered = signature - centroid[:, None]
-    bulk_centered = bulk - centroid
-
-    def objective(p: np.ndarray) -> float:
-        residual = bulk_centered - signature_centered @ p
-        return float(residual @ residual)
-
-    result = minimize(
-        objective,
-        x0=np.full(n_cell_types, 1.0 / n_cell_types),
-        method="SLSQP",
-        bounds=[(0.0, 1.0)] * n_cell_types,
-        constraints={
-            "type": "eq",
-            "fun": lambda p: p.sum() - 1.0,
-        },
-    )
-
-    if not result.success:
-        raise RuntimeError(
-            f"Simplex optimization failed: {result.message}"
-        )
-
-    return result.x
 
 def solve_ols_internal(S: np.ndarray, B: np.ndarray) -> np.ndarray:
     solution, _ = nnls(S, B)
