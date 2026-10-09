@@ -12,6 +12,8 @@ DECONVersation leverages embedding representations from large-scale, LLM-based f
 
 DECONVersation enables end-to-end deconvolution through a set of easy-to-use functions. Embeddings can be extracted from both bulk and single-cell datasets, with single-cell embeddings used to construct robust signature matrices from .h5ad references. Cell type proportions are then estimated via NNLS directly in embedding space. Built-in benchmarking tools evaluate predictions against ground truth using RMSE and Pearson correlation, complemented by visualization utilities for assessing method performance. DECONVersation also supports testing and validation with in-built [pseudobulk functions](tutorials/run_deconversation_on_pseudobulk_data.ipynb), [model fine-tuning](tutorials/finetune_geneformer_for_cell_type_classification.ipynb) and [attention extraction](tutorials/extract_attention_weights.ipynb).
 
+Please see [manuscript](https://www.biorxiv.org/content/10.64898/2026.10.02.756356) for more details.
+
 <h1 align="left">
   <img src="https://raw.githubusercontent.com/nygenome/DECONVersation/main/docs/workflow.png" width="900">
 </h1>
@@ -98,5 +100,14 @@ singularity exec --nv \
 - [Cell2Sentence](https://pmc.ncbi.nlm.nih.gov/articles/PMC11565894/) Cell2Sentence: Teaching Large Language Models the Language of Biology
 - [CellHermes](https://www.biorxiv.org/content/10.1101/2025.11.07.687322v1) Language may be all omics needs: Harmonizing multimodal data for omics understanding with CellHermes
 - [scGPT](https://www.nature.com/articles/s41592-024-02201-0) scGPT: toward building a foundation model for single-cell multi-omics using generative AI
+---
+
+## Citation
+```
+DECONVersation: Single Cell Foundation Model-Derived Embeddings for Robust Cell Type Deconvolution of Bulk RNA-seq
+Ali Oku, Heather Geiger, Nicolas Robine, Rui Fu
+bioRxiv 2026.10.02.756356; doi: https://doi.org/10.64898/2026.10.02.756356
+```
+
 ---
 <a href="https://www.flaticon.com/free-icons/robot" title="robot icons">Robot icons created by Hilmy Abiyyu A. - Flaticon</a>
