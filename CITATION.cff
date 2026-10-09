@@ -1,0 +1,64 @@
+cff-version: 1.2.0
+message: >-
+  If you use DECONVersation, please cite the software and the associated
+  preprint.
+title: >-
+  DECONVersation: Single-Cell Foundation Model-Derived Embeddings for Robust
+  Cell Type Deconvolution of Bulk RNA-seq Data
+type: software
+version: 0.1.0
+authors:
+  - family-names: Oku
+    given-names: Ali
+    affiliation: New York Genome Center
+  - family-names: Geiger
+    given-names: Heather
+    affiliation: New York Genome Center
+  - family-names: Robine
+    given-names: Nicolas
+    affiliation: New York Genome Center
+  - family-names: Fu
+    given-names: Rui
+    affiliation: New York Genome Center
+abstract: >-
+  AI and deep learning have transformed single-cell transcriptomics, empowering
+  unsupervised annotation, trajectory inference, and cross-dataset integration
+  at scale. Here, we propose bulk RNA-seq deconvolution as a novel task for
+  single-cell foundation models. Deconvolution estimates cell type proportions
+  from bulk RNA-seq using single-cell reference data, with applications spanning
+  tumor microenvironment profiling to the detection of disease-associated shifts
+  in tissue composition. However, existing methods remain vulnerable to batch
+  effects, subject-level variation, and marker gene selection sensitivity. We
+  introduce DECONVersation, which leverages embeddings from pretrained and
+  fine-tuned single-cell foundation models, coupled with a non-negative least
+  squares solver, to estimate cell type proportions. Foundation model embeddings
+  are robust to batch effects and implicitly encode complex gene relationships,
+  sidestepping explicit marker gene selection. Benchmarked against MuSiC, DWLS,
+  and BayesPrism, DECONVersation achieved comparable or superior performance
+  across diverse tissues. Performance further improved with tissue-specific
+  fine-tuning.
+repository-code: https://github.com/nygenome/DECONVersation
+url: https://github.com/nygenome/DECONVersation
+preferred-citation:
+  type: article
+  title: >-
+    DECONVersation: Single-Cell Foundation Model-Derived Embeddings for Robust
+    Cell Type Deconvolution of Bulk RNA-seq Data
+  authors:
+    - family-names: Oku
+      given-names: Ali
+      affiliation: New York Genome Center
+    - family-names: Geiger
+      given-names: Heather
+      affiliation: New York Genome Center
+    - family-names: Robine
+      given-names: Nicolas
+      affiliation: New York Genome Center
+    - family-names: Fu
+      given-names: Rui
+      affiliation: New York Genome Center
+  year: 2026
+  journal: bioRxiv
+  doi: 10.64898/2026.10.02.756356
+  url: https://www.biorxiv.org/content/10.64898/2026.10.02.756356v1.full
+
