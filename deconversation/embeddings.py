@@ -93,6 +93,7 @@ try:
     import joblib
     import json
     import re
+    from tqdm import tqdm # For progress bar 
     print("cellhermes successfully imported.")
 
 except ImportError:
@@ -680,9 +681,13 @@ def get_embedding_ch(
             }
         ])
 
+    # surpress logs
+    logging.getLogger("transformers").setLevel(logging.ERROR)
+
     generate_outputs = []
     with torch.no_grad():
-        for m in messages:
+        #for m in messages:
+        for m in tqdm(messages, desc="Extracting embeddings", unit="cell"):
             gen_kwargs, prompt_length = ch_process_args(model, tokenizer, processor, template, generating_args, m, input_kwargs={})
             generate_output = model(gen_kwargs['inputs'], output_hidden_states=True)
             generate_outputs.append(generate_output['hidden_states'][-1].cpu())
