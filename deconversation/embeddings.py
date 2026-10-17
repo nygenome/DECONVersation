@@ -108,6 +108,33 @@ try:
 except ImportError:
     print("scgpt is not installed. Skipping related functions.")
 
+# ===============================
+# TranscriptFormer
+# ===============================
+try:
+    import json
+    import logging
+    import os
+    from omegaconf import OmegaConf
+    from transcriptformer.model.inference import run_inference
+    from transcriptformer.datasets import bgee_testis_evolution, download_all_embeddings
+    import pandas as pd
+    import numpy as np
+    import anndata as ad
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.neighbors import KNeighborsClassifier
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    import numpy as np
+    from sklearn.metrics import confusion_matrix
+    import seaborn as sns
+    import scanpy as sc
+    import scipy.sparse as sp
+    print("transcriptformer successfully imported.")
+
+except ImportError:
+    print("transcriptformer is not installed. Skipping related functions.")
 
 # ===============================
 # scVI
@@ -227,14 +254,18 @@ def extract_embs(
     # scGPT
     elif mode == "scgpt":
         emb = get_embedding_scgpt(bulk_df=bulk_df, model_path=model_path, batch_size=batch_size)
-        
-    #  scVI
+    
+    # TranscriptFormer:
+    elif mode == "transcriptformer":
+        emb = get_embedding_tf(bulk_df=bulk_df, model_path=model_path, normalize_to_scale=5000)
+    
+    # scVI
     elif mode == "scvi":
         emb = get_embedding_scvi(bulk_df=bulk_df, model_path=model_path)
         
-    #  Only supports Geneformer, c2s, cellhermes, scgpt and scVI 
+    # Only supports Geneformer, c2s, cellhermes, scgpt and scVI 
     else:
-        raise ValueError("mode must be 'geneformer', 'c2s', 'cellhermes', 'scgpt' or 'scvi' ")
+        raise ValueError("mode must be 'geneformer', 'c2s', 'cellhermes', 'scgpt', 'transcriptformer',  or 'scvi' ")
 
     return emb
 
@@ -836,6 +867,13 @@ def get_embedding_scgpt(
     embeddings_df = embeddings_df.set_index("name")
     return embeddings_df
 
+# --------------------------------
+# Extract TranscriptFormer embeddings
+# --------------------------------
+def get_embeddings_tf(
+    bulk_df,
+    model_path,
+    normalize_to_scale=5000):
 
 
 # --------------------------------
