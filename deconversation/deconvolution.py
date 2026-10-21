@@ -199,7 +199,7 @@ def gd_decompose(
         if sum_to_one:
             w_final = w_final / w_final.sum(dim=-1, keepdim=True)
 
-    return w_final.squeeze(0).numpy() if not batched else w_final.numpy()
+    return w_final.squeeze(0).detach().cpu().numpy() if not batched else w_final.detach().cpu().numpy()
 
 def run_all_deconv(
     bulk_df: pd.DataFrame,
