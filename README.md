@@ -62,7 +62,7 @@ DECONVersation also supports Apple Silicon (MPS) acceleration, to speed up Genef
 | 2 | Cell2Sentence 410M | [HuggingFace](https://huggingface.co/vandijklab/C2S-Pythia-410m-cell-type-prediction) | [Cell2Sentence: Teaching Large Language Models the Language of Biology](https://proceedings.mlr.press/v235/levine24a.html) |
 | 3 | Cell2Sentence 2B | [HuggingFace](https://huggingface.co/vandijklab/C2S-Scale-Gemma-2-2B) | [Cell2Sentence: Teaching Large Language Models the Language of Biology](https://proceedings.mlr.press/v235/levine24a.html) |
 | 4 | scGPT | [GitHub](https://github.com/bowang-lab/scGPT) | [scGPT: toward building a foundation model for single-cell multi-omics using generative AI](https://www.nature.com/articles/s41592-024-02201-0) |
-| 5 | cellHermes | [Github](https://github.com/theislab/CellHermes) | [Language may be all omics needs: Harmonizing multimodal data for omics understanding with CellHermes](https://www.biorxiv.org/content/10.1101/2025.11.07.687322v1) |
+| 5 | CellHermes | [GitHub](https://github.com/theislab/CellHermes) | [Language may be all omics needs: Harmonizing multimodal data for omics understanding with CellHermes](https://www.biorxiv.org/content/10.1101/2025.11.07.687322v1) |
 
 ---
 
