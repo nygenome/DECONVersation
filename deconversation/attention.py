@@ -12,8 +12,7 @@ from transformers import AutoModel
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForMaskedLM
 from peft import PeftModel
 import json
-from preprocessing import gene_id_name_map
-
+from .preprocessing import gene_id_name_map
 
 # ===============================
 # Geneformer
