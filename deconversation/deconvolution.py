@@ -299,10 +299,18 @@ def check_signature(signature_df: pd.DataFrame):
     i, j = np.unravel_index(cosine_matrix.argmax(), cosine_matrix.shape)
     max_pairwise_cosine_similarity = cosine_matrix[i, j]
 
+    # Raw (non-normalized) conditioning: what NNLS actually sees
+    raw_sv = np.linalg.svd(S, compute_uv=False)
+    raw_condition_number = raw_sv[0] / raw_sv[-1]
+    raw_smallest_singular_value = raw_sv[-1]
+
     print(
         f"Condition number: {condition_number:.2f}.\n"
         "~1-10: signatures are well separated; NNLS is usually hard "
         "to improve materially with another solver."
+    )
+    print(
+         f"Raw condition number: {raw_condition_number:.2f}."
     )
     print(
         f"Smallest singular value: {smallest_singular_value:.4g}.\n"
