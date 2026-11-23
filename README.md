@@ -52,6 +52,28 @@ We also provide conda env yaml files in the `envs` directory that are reproducib
 
 DECONVersation also supports Apple Silicon (MPS) acceleration, to speed up Geneformer, C2S, and CellHermes embedding extraction on corresponding machines (2x or more faster than CPU alone on M2 16GB), provided that torch and other dependencies are installed as native arm64 builds.
 
+### scConcept sample embeddings
+
+The experimental `scconcept` mode uses the [scConcept](https://github.com/theislab/scConcept) package and a named checkpoint from its Hugging Face repository. Install `sc-concept` in a separate Python 3.12 or newer environment following the project's installation instructions, then install DECONVersation in the same environment. The first run downloads model resources to the chosen cache directory.
+
+Both matrices must have genes as rows, profiles as columns, and Ensembl gene IDs; version suffixes are removed and duplicates are rejected. Expression values must be nonnegative and finite. scConcept applies the normalization configured by the checkpoint; consult the checkpoint's settings and ensure both datasets use an appropriate input scale. With an `.h5ad` reference, DECONVersation embeds the mean expression profile of each cell type, not the mean of individual cell embeddings. scConcept was trained on single-cell data, so its use with bulk and averaged profiles and its deconvolution accuracy need benchmarking.
+
+```python
+result = deconversation.deconverse(
+    bulk_df="bulk.csv", sig_df="signature.csv", mode="scconcept",
+    model="corpus40M-model30M", scconcept_cache_dir="scconcept_cache",
+    temp_output_dir="scconcept_output", batch_size=5,
+)
+```
+
+```bash
+deconverse --bulk bulk.csv --sig signature.csv --mode scconcept \
+  --model corpus40M-model30M --scconcept-cache-dir scconcept_cache \
+  --temp-output-dir scconcept_output --output proportions.csv
+```
+
+Set `scconcept_species` (CLI: `--scconcept-species`) for a supported non-human checkpoint; the default is `hsapiens`. The saved `bulk_embedding.csv` and `signature_embedding.csv` contain the CLS vectors used by the solver. Select the mode explicitly; model-name inference is not supported for scConcept.
+
 ### BulkFormer-Atlas sample embeddings
 
 The experimental `bulkformer` mode uses the official [BulkFormer-Atlas](https://github.com/KangBoming/BulkFormer) API (2.0.1) and its Atlas checkpoint. Create a separate environment following the official inference instructions, install the official repository package and DECONVersation in that environment, and download the Atlas model bundle using `bulkformer.download_model("atlas")`. Supply the resulting `model/atlas` directory as `model`. The similarly named Transformers port is a different API. Atlas inference uses CUDA when available and otherwise CPU, in FP32.

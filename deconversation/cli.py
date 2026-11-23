@@ -19,12 +19,12 @@ def build_parser():
     parser.add_argument(
         "-m", "--model",
         default=None,
-        help="Path to zero-shot or fine-tuned scFM model (not required for --mode raw/pca)",
+        help="Model path, or scConcept checkpoint name (not required for --mode raw/pca)",
     )
     parser.add_argument(
         "--mode",
         default=None,
-        choices=["geneformer", "c2s", "cellhermes", "scgpt", "scvi", "bulkformer", "pca", "raw"],
+        choices=["geneformer", "c2s", "cellhermes", "scgpt", "scvi", "scconcept", "bulkformer", "pca", "raw"],
         help="scFM model type (inferred from model path if omitted)",
     )
     parser.add_argument(
@@ -90,6 +90,10 @@ def build_parser():
                         help="Maximum number of reference-variable Atlas panel genes (default: 4096)")
     parser.add_argument("--bulkformer-gene-panel", default=None,
                         help="CSV with ensembl_gene column from an earlier Atlas run")
+    parser.add_argument("--scconcept-cache-dir", default=None,
+                        help="Directory for scConcept checkpoint resources")
+    parser.add_argument("--scconcept-species", default="hsapiens",
+                        help="scConcept species identifier (default: hsapiens)")
     return parser
 
 
@@ -140,6 +144,8 @@ def main(argv=None):
             bulkformer_signature_scale=args.bulkformer_signature_scale,
             bulkformer_n_genes=args.bulkformer_n_genes,
             bulkformer_gene_panel=args.bulkformer_gene_panel,
+            scconcept_cache_dir=args.scconcept_cache_dir,
+            scconcept_species=args.scconcept_species,
         )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

@@ -37,7 +37,9 @@ def deconverse(
     bulkformer_bulk_scale = None,
     bulkformer_signature_scale = None,
     bulkformer_n_genes = 4096,
-    bulkformer_gene_panel = None):
+    bulkformer_gene_panel = None,
+    scconcept_cache_dir = None,
+    scconcept_species = 'hsapiens'):
     """
     Extracting embeddings for bulk and ref signature data, then run NNLS-based and other methods for deconvolution
     
@@ -65,6 +67,7 @@ def deconverse(
         - "cellhermes"
         - "scgpt"
         - "bulkformer" (Atlas)
+        - "scconcept"
         - "scvi"
         - "pca"
         - "raw"
@@ -92,6 +95,13 @@ def deconverse(
         Maximum panel size when selecting reference-variable genes (1–4096).
     bulkformer_gene_panel : str, optional
         CSV containing an 'ensembl_gene' column from a previous Atlas run.
+
+    scconcept_cache_dir : str, optional
+        Directory for scConcept checkpoint resources. Defaults to a directory
+        under temp_output_dir. For mode='scconcept', model is a checkpoint name
+        such as 'corpus40M-model30M', not a local model path.
+    scconcept_species : str
+        Species name understood by the selected scConcept checkpoint.
 
     Returns
     -------
@@ -167,6 +177,13 @@ def deconverse(
             os.path.join(temp_output_dir, 'bulkformer_gene_panel.csv'), index=False)
         bulk_coverage.to_csv(os.path.join(temp_output_dir, 'bulkformer_bulk_coverage.csv'))
         sig_coverage.to_csv(os.path.join(temp_output_dir, 'bulkformer_signature_coverage.csv'))
+        bulk_embed.to_csv(os.path.join(temp_output_dir, 'bulk_embedding.csv'))
+        sig_mat_embed.to_csv(os.path.join(temp_output_dir, 'signature_embedding.csv'))
+    elif mode == "scconcept":
+        cache_dir = scconcept_cache_dir or os.path.join(temp_output_dir, 'scconcept_cache')
+        bulk_embed, sig_mat_embed = embeddings.get_scconcept_embeddings(
+            bulk_df, sig_mat, model, cache_dir, batch_size=batch_size,
+            species=scconcept_species)
         bulk_embed.to_csv(os.path.join(temp_output_dir, 'bulk_embedding.csv'))
         sig_mat_embed.to_csv(os.path.join(temp_output_dir, 'signature_embedding.csv'))
     elif mode == "pca":

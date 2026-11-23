@@ -127,6 +127,69 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
 
+def get_embedding_scconcept(bulk_df, model_name, cache_dir, batch_size=5,
+                            species='hsapiens', concept_model=None):
+    """Extract scConcept CLS vectors for a samples-by-Ensembl-genes matrix.
+
+    ``model_name`` is a checkpoint name from theislab/scConcept on Hugging
+    Face. Pass a loaded ``concept_model`` to reuse it for multiple inputs.
+    scConcept applies the normalization configured by its checkpoint.
+    """
+    if not isinstance(bulk_df, pd.DataFrame) or bulk_df.empty:
+        raise ValueError('scConcept requires a nonempty samples-by-genes DataFrame')
+    if not bulk_df.index.is_unique or bulk_df.index.hasnans:
+        raise ValueError('scConcept sample names must be unique and non-null')
+    if not isinstance(batch_size, int) or isinstance(batch_size, bool) or batch_size < 1:
+        raise ValueError('scConcept batch_size must be a positive integer')
+    if bulk_df.columns.hasnans:
+        raise ValueError('scConcept gene IDs must not be null')
+    genes = pd.Index(bulk_df.columns.astype(str)).str.replace(r'\.\d+$', '', regex=True)
+    if not genes.is_unique:
+        raise ValueError('scConcept gene IDs must be unique after removing version suffixes')
+    if not genes.str.match(r'^ENS[A-Z]*G\d+$').all():
+        raise ValueError('scConcept requires Ensembl gene IDs for all input genes; map symbols before use')
+    try:
+        values = bulk_df.to_numpy(dtype=np.float32)
+    except (TypeError, ValueError) as exc:
+        raise ValueError('scConcept expression values must be numeric') from exc
+    if not np.isfinite(values).all() or (values < 0).any() or (values.sum(axis=1) <= 0).any():
+        raise ValueError('scConcept expression values must be finite, nonnegative, and nonzero per profile')
+    if concept_model is None:
+        try:
+            from concept import scConcept
+        except ImportError as exc:
+            raise ImportError('scConcept requires the optional sc-concept package; see the README') from exc
+        concept_model = scConcept(cache_dir=cache_dir)
+        concept_model.load_config_and_model(model_name=model_name)
+    adata = sc.AnnData(X=values, obs=pd.DataFrame(index=bulk_df.index.astype(str)),
+                       var=pd.DataFrame(index=genes))
+    result = concept_model.extract_embeddings(adata=adata, species=species,
+                                              batch_size=batch_size, num_workers=0)
+    vectors = np.asarray(result['cls_cell_emb'])
+    if vectors.ndim != 2 or vectors.shape[0] != len(bulk_df) or vectors.shape[1] == 0 or not np.isfinite(vectors).all():
+        raise ValueError('scConcept returned invalid sample embeddings')
+    return pd.DataFrame(vectors, index=bulk_df.index,
+                        columns=[f'scConcept_{i}' for i in range(vectors.shape[1])])
+
+
+def get_scconcept_embeddings(bulk_df, signature_df, model_name, cache_dir,
+                             batch_size=5, species='hsapiens'):
+    """Extract bulk and reference embeddings with one loaded scConcept model."""
+    try:
+        from concept import scConcept
+    except ImportError as exc:
+        raise ImportError('scConcept requires the optional sc-concept package; see the README') from exc
+    concept_model = scConcept(cache_dir=cache_dir)
+    concept_model.load_config_and_model(model_name=model_name)
+    bulk_emb = get_embedding_scconcept(bulk_df, model_name, cache_dir, batch_size,
+                                       species, concept_model)
+    sig_emb = get_embedding_scconcept(signature_df, model_name, cache_dir, batch_size,
+                                      species, concept_model)
+    if not bulk_emb.columns.equals(sig_emb.columns):
+        raise ValueError('scConcept bulk and signature embedding dimensions differ')
+    return bulk_emb, sig_emb
+
+
 def get_embedding_bulkformer_atlas(bulk_df, signature_df, model_path,
                                    bulk_input_scale, signature_input_scale,
                                    batch_size=5, n_genes=4096, gene_panel=None):
@@ -294,6 +357,9 @@ def extract_embs(
     # scGPT
     elif mode == "scgpt":
         emb = get_embedding_scgpt(bulk_df=bulk_df, model_path=model_path, batch_size=batch_size)
+
+    elif mode == "scconcept":
+        emb = get_embedding_scconcept(bulk_df, model_path, safe_temp_dir, batch_size=batch_size)
         
     #  scVI
     elif mode == "scvi":
@@ -301,7 +367,7 @@ def extract_embs(
         
     #  Only supports Geneformer, c2s, cellhermes, scgpt and scVI 
     else:
-        raise ValueError("mode must be 'geneformer', 'c2s', 'cellhermes', 'scgpt' or 'scvi' ")
+        raise ValueError("mode must be 'geneformer', 'c2s', 'cellhermes', 'scgpt', 'scconcept' or 'scvi'")
 
     return emb
 
