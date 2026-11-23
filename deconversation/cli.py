@@ -24,7 +24,7 @@ def build_parser():
     parser.add_argument(
         "--mode",
         default=None,
-        choices=["geneformer", "c2s", "cellhermes", "scgpt", "scvi","pca", "raw"],
+        choices=["geneformer", "c2s", "cellhermes", "scgpt", "scvi", "bulkformer", "pca", "raw"],
         help="scFM model type (inferred from model path if omitted)",
     )
     parser.add_argument(
@@ -80,6 +80,16 @@ def build_parser():
         type=int,
         help="Default batch processing of 5, lower if memory is a constraint"
     )
+    for flag, description in (("bulk", "bulk"), ("signature", "reference signature")):
+        parser.add_argument(
+            f"--bulkformer-{flag}-scale",
+            choices=["counts", "tpm", "log1p_tpm", "log2_tpm"],
+            help=f"BulkFormer Atlas {description} expression scale (required for --mode bulkformer)",
+        )
+    parser.add_argument("--bulkformer-n-genes", type=int, default=4096,
+                        help="Maximum number of reference-variable Atlas panel genes (default: 4096)")
+    parser.add_argument("--bulkformer-gene-panel", default=None,
+                        help="CSV with ensembl_gene column from an earlier Atlas run")
     return parser
 
 
@@ -91,6 +101,8 @@ def main(argv=None):
         parser.error("either --adata or --sig must be provided")
     if args.model is None and args.mode not in {"raw", "pca"}:
         parser.error("--model is required unless --mode is 'raw' or 'pca'")
+    if args.mode == "bulkformer" and (args.bulkformer_bulk_scale is None or args.bulkformer_signature_scale is None):
+        parser.error("--mode bulkformer requires --bulkformer-bulk-scale and --bulkformer-signature-scale")
 
     os.makedirs(args.temp_output_dir, exist_ok=True)
     print("Importing foundation model packages...")    
@@ -123,7 +135,11 @@ def main(argv=None):
             solver=args.solver,
             transpose=transpose,
             demo=demo,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            bulkformer_bulk_scale=args.bulkformer_bulk_scale,
+            bulkformer_signature_scale=args.bulkformer_signature_scale,
+            bulkformer_n_genes=args.bulkformer_n_genes,
+            bulkformer_gene_panel=args.bulkformer_gene_panel,
         )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

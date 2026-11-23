@@ -33,7 +33,11 @@ def deconverse(
     solver = "nnls",
     demo = False,
     transpose = False,
-    batch_size = 5):
+    batch_size = 5,
+    bulkformer_bulk_scale = None,
+    bulkformer_signature_scale = None,
+    bulkformer_n_genes = 4096,
+    bulkformer_gene_panel = None):
     """
     Extracting embeddings for bulk and ref signature data, then run NNLS-based and other methods for deconvolution
     
@@ -60,6 +64,7 @@ def deconverse(
         - "c2s"
         - "cellhermes"
         - "scgpt"
+        - "bulkformer" (Atlas)
         - "scvi"
         - "pca"
         - "raw"
@@ -78,6 +83,15 @@ def deconverse(
 
     batch_size : int
         default batch processing of 5, lower if memory is a constraint
+
+    bulkformer_bulk_scale, bulkformer_signature_scale : str, optional
+        Required for BulkFormer: counts, tpm, log1p_tpm, or log2_tpm.
+        The reference scale describes the values in the signature matrix (or
+        adata.X before averaging). Inputs use Ensembl gene IDs.
+    bulkformer_n_genes : int
+        Maximum panel size when selecting reference-variable genes (1–4096).
+    bulkformer_gene_panel : str, optional
+        CSV containing an 'ensembl_gene' column from a previous Atlas run.
 
     Returns
     -------
@@ -140,7 +154,22 @@ def deconverse(
         print("No genes left in bulk data, please check input.")
 
     # extract embeddings
-    if mode == "pca":
+    if mode == "bulkformer":
+        panel = None
+        if bulkformer_gene_panel is not None:
+            panel = pd.read_csv(bulkformer_gene_panel)['ensembl_gene'].tolist()
+        bulk_embed, sig_mat_embed, panel, bulk_coverage, sig_coverage = (
+            embeddings.get_embedding_bulkformer_atlas(
+                bulk_df, sig_mat, model, bulkformer_bulk_scale,
+                bulkformer_signature_scale, batch_size=batch_size,
+                n_genes=bulkformer_n_genes, gene_panel=panel))
+        pd.DataFrame({'ensembl_gene': panel}).to_csv(
+            os.path.join(temp_output_dir, 'bulkformer_gene_panel.csv'), index=False)
+        bulk_coverage.to_csv(os.path.join(temp_output_dir, 'bulkformer_bulk_coverage.csv'))
+        sig_coverage.to_csv(os.path.join(temp_output_dir, 'bulkformer_signature_coverage.csv'))
+        bulk_embed.to_csv(os.path.join(temp_output_dir, 'bulk_embedding.csv'))
+        sig_mat_embed.to_csv(os.path.join(temp_output_dir, 'signature_embedding.csv'))
+    elif mode == "pca":
         res = embeddings.get_embedding_pca(bulk_df, sig_mat)
         bulk_embed = res["pca_bulk"]
         sig_mat_embed = res["sig_pca"]

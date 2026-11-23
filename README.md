@@ -52,6 +52,30 @@ We also provide conda env yaml files in the `envs` directory that are reproducib
 
 DECONVersation also supports Apple Silicon (MPS) acceleration, to speed up Geneformer, C2S, and CellHermes embedding extraction on corresponding machines (2x or more faster than CPU alone on M2 16GB), provided that torch and other dependencies are installed as native arm64 builds.
 
+### BulkFormer-Atlas sample embeddings
+
+The experimental `bulkformer` mode uses the official [BulkFormer-Atlas](https://github.com/KangBoming/BulkFormer) API (2.0.1) and its Atlas checkpoint. Create a separate environment following the official inference instructions, install the official repository package and DECONVersation in that environment, and download the Atlas model bundle using `bulkformer.download_model("atlas")`. Supply the resulting `model/atlas` directory as `model`. The similarly named Transformers port is a different API. Atlas inference uses CUDA when available and otherwise CPU, in FP32.
+
+Both inputs must use human Ensembl gene IDs, with genes as rows and bulk samples or cell types as columns. Specify each input's actual scale explicitly: `counts`, `tpm`, `log1p_tpm` (natural log), or `log2_tpm`. For `adata`, the signature is the mean of `adata.X` per cell type, so its scale must describe `adata.X`; averaging transformed values is not equivalent to transforming averaged counts. Atlas normalizes counts using its gene-length resources, and incomplete gene coverage affects this normalization.
+
+```python
+result = deconversation.deconverse(
+    bulk_df="bulk.csv", sig_df="signature.csv",
+    mode="bulkformer", model="model/atlas",
+    bulkformer_bulk_scale="counts", bulkformer_signature_scale="counts",
+    temp_output_dir="bulkformer_output", batch_size=2,
+)
+```
+
+```bash
+deconverse --bulk bulk.csv --sig signature.csv --mode bulkformer \
+  --model model/atlas --bulkformer-bulk-scale counts \
+  --bulkformer-signature-scale counts --batch_size 2 \
+  --temp-output-dir bulkformer_output --output proportions.csv
+```
+
+The scales in these examples are illustrative; use the scales of your own data. Atlas requires the same gene panel for bulk and reference profiles. By default, DECONVersation selects up to 4,096 genes varying across reference profiles and observed in every input profile; selection uses reference variation and bulk/reference gene availability. At least two reference profiles and one shared variable gene are required. The output directory contains `bulkformer_gene_panel.csv`, per-input coverage CSVs, and the bulk and signature embedding CSVs. Use `bulkformer_gene_panel="path/to/bulkformer_gene_panel.csv"` (CLI: `--bulkformer-gene-panel`) to reuse a panel; all its genes must be observed in every profile. A fixed training-derived panel is preferable for held-out evaluation. The quality of deconvolution in Atlas embedding space has not yet been benchmarked by this integration.
+
 ---
 
 ## Supported scFMs

@@ -126,6 +126,72 @@ except ImportError:
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
+
+def get_embedding_bulkformer_atlas(bulk_df, signature_df, model_path,
+                                   bulk_input_scale, signature_input_scale,
+                                   batch_size=5, n_genes=4096, gene_panel=None):
+    """Embed bulk samples and reference profiles with one Atlas gene panel.
+
+    Inputs have samples (or cell types) as rows and Ensembl IDs as columns.
+    A supplied panel is a sequence of Ensembl IDs. Otherwise, variable genes
+    are selected using reference profiles only, among genes observed in both
+    inputs. Returns embeddings, panel IDs, and per-profile coverage.
+    """
+    try:
+        from bulkformer import load_atlas, prepare_atlas_input, select_variable_genes, extract_atlas
+    except ImportError as exc:
+        raise ImportError(
+            "BulkFormer-Atlas requires the official BulkFormer package (version 2.0.1); "
+            "see the BulkFormer installation instructions in the README."
+        ) from exc
+
+    scales = {'counts', 'tpm', 'log1p_tpm', 'log2_tpm'}
+    if bulk_input_scale not in scales or signature_input_scale not in scales:
+        raise ValueError("BulkFormer requires explicit bulk and signature input scales: "
+                         "counts, tpm, log1p_tpm, or log2_tpm")
+    if not isinstance(n_genes, int) or isinstance(n_genes, bool) or not 1 <= n_genes <= 4096:
+        raise ValueError("bulkformer_n_genes must be an integer from 1 to 4096")
+
+    # The official Atlas extractor defaults to BF16, which is not portable to CPU.
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model, vocab, normalization_vocab = load_atlas(model_path, device=device)
+    bulk_values, bulk_coverage = prepare_atlas_input(
+        bulk_df, vocab, normalization_vocab, input_scale=bulk_input_scale)
+    sig_values, sig_coverage = prepare_atlas_input(
+        signature_df, vocab, normalization_vocab, input_scale=signature_input_scale)
+    shared = (bulk_values >= 0).all(axis=0) & (sig_values >= 0).all(axis=0)
+    if gene_panel is None:
+        if len(sig_values) < 2:
+            raise ValueError("BulkFormer panel selection requires at least two reference profiles; "
+                             "provide a saved gene panel instead")
+        variable = shared & (np.var(sig_values, axis=0, dtype=np.float64) > 0)
+        count = min(n_genes, int(variable.sum()))
+        if count == 0:
+            raise ValueError("No shared variable genes available for the BulkFormer Atlas panel")
+        selection_input = sig_values.copy()
+        selection_input[:, ~shared] = -10
+        panel_indices = select_variable_genes(selection_input, n_genes=count)
+    else:
+        panel = pd.Index(gene_panel)
+        if panel.empty or panel.has_duplicates or panel.isna().any() or any(not str(g).strip() for g in panel):
+            raise ValueError("BulkFormer gene panel must contain unique, nonempty Ensembl IDs")
+        panel_indices = pd.Index(vocab['ensembl_gene']).get_indexer(panel)
+        if len(panel_indices) > 4096 or (panel_indices < 0).any():
+            raise ValueError("BulkFormer gene panel must contain at most 4096 Atlas vocabulary genes")
+        if not shared[panel_indices].all():
+            raise ValueError("Every BulkFormer panel gene must be observed in all bulk and reference profiles")
+
+    def extract(values, index):
+        result = extract_atlas(model, values, panel_indices, batch_size=batch_size,
+                               precision='fp32', progress=False)
+        if result.ndim != 2 or result.shape[0] != len(index) or result.shape[1] == 0 or not np.isfinite(result).all():
+            raise ValueError("BulkFormer returned invalid sample embeddings")
+        return pd.DataFrame(result, index=index,
+                            columns=[f'BulkFormer_{i}' for i in range(result.shape[1])])
+
+    return (extract(bulk_values, bulk_df.index), extract(sig_values, signature_df.index),
+            vocab['ensembl_gene'].iloc[panel_indices].tolist(), bulk_coverage, sig_coverage)
+
 # -----------------------------
 # Extract  embeddings 
 # -----------------------------
