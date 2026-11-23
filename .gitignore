@@ -21,6 +21,7 @@ results/
 .ipynb_checkpoints/README-checkpoint.md
 
 __pycache__/
+envs/bulkformer-venv/
 
 # Ignore temp files
 *.swp
@@ -35,3 +36,11 @@ tests/query_cxg_genes.ipynb
 tests/test_attention_extraction.ipynb
 tests/test_deconversation_functions.ipynb
 tests/run_deconversation_on_pseudobulk_data.ipynb
+
+
+# Ignore bulkformer files
+.DS_Store
+AGENTS.md
+DECONVersation.egg-info/
+benchmark/
+temp/
